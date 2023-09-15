@@ -10,4 +10,4 @@ __Composition du groupe :__
 - Thomas AYRIVIÉ, n°22000580 (thomas.ayrivie@etu.univ-montp3.fr).
 - Mehdi BELKHITER, n°21813356 (mehidi.belkhiter@etu.univ-montp3.fr).
 - Jamila CHERKAOUI, n°22309204  (jamila.cherkaoui@etu.univ-montp3.fr).
-- Magatte LO, n°[en attente] (magattel805@gmail.com).
+- Magatte LO, n°22311161 (magatte.lo@etu.univ-montp3.fr).
