@@ -21,7 +21,6 @@
 ⋅⋅* Wyeth W. Wasserman and Albin Sandelin. *Applied bioinformatics for the identification of regulatory elements*. Nature reviews genectics, april 2004, volume 5.
 ⋅⋅⋅Lien : https://github.com/DinaLH/-TER-2023-2024-Traitements-de-Cancer-du-Sein/blob/main/Bibliographie/Wasserman_Sandelin_2004.pdf
 
-
 ## Documents
 ⋅⋅* Ryan Tibshirani, Larry Wasserman. *Sparsity, the Lasso, and Friends Statistical Machine Learning*, Spring 2017.
 ⋅⋅⋅Lien : https://github.com/DinaLH/-TER-2023-2024-Traitements-de-Cancer-du-Sein/blob/main/Bibliographie/Tibshirani%2C%20Ryan%20-%20Sparsity%2C%20the%20Lasso%2C%20and%20Friends.pdf
