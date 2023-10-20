@@ -58,7 +58,7 @@ Abstract:
 
 ## Notre commanditaire
 
-Notre commanditaire de projet, Madame Sophie Lebre est maître de conférences au sein du département Mathématiques et Informatique Appliquées (MIAp) de l'Université Paul Valéry Montpellier 3, membre de l'équipe Probabilité et Statistiques de l'Institut Montpelliérain Alexander Grothendieck (IMAG), co-responsable du Master MIASHS (Mathématiques et Informatique pour les Sciences Humaines et Sociales), master en alternance sur les 2 années M1-M2 et Chercheuse à l'Institut de Recherche en Cancérologie de Montpellier (IRCM).
+Le commanditaire de projet est une collaboration avec Mathilde Robin qui est ingénieure à l'IRCM ainsi que Laurent Bréhélin (chercheur CNRS au LIRMM), Charles Lecellier (chercheur à l'IGMM) et Sophie Lèbre est maître de conférences au sein du département Mathématiques et Informatique Appliquées (MIAp) de l'Université Paul Valéry Montpellier 3, membre de l'équipe Probabilité et Statistiques de l'Institut Montpelliérain Alexander Grothendieck (IMAG), co-responsable du Master MIASHS (Mathématiques et Informatique pour les Sciences Humaines et Sociales), master en alternance sur les 2 années M1-M2.
 
 \bigskip
 
