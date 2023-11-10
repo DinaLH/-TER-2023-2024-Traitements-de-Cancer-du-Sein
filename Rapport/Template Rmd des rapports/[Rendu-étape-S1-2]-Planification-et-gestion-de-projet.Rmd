@@ -1,0 +1,189 @@
+---
+title: "Projet TER par l'équipe 5 Rendu intermédiaire 2 : Planification et gestion de projet"
+author:
+- 'Thomas AYRIVIÉ, '
+- 'Mehdi BELKHITER, '
+- 'Jamila CHERKAOUI, '
+- 'Dina EL HIJJAWI, '
+- Magatte LO.
+plagiat:
+- 'Thomas AYRIVIÉ, n°22000580'
+- 'Mehdi BELKHITER, n°21813356'
+- 'Jamila CHERKAOUI, n°22309204'
+- 'Dina EL HIJJAWI, n°22310171'
+- 'Magatte LO, n°22311161'
+date: "10/11/2023"
+output:
+  pdf_document:
+    fig_caption: yes
+    keep_md: yes
+    keep_tex: yes
+    md_extensions: +raw_attribute
+    number_sections: yes
+    pandoc_args:
+    - --top-level-division="chapter"
+    - --bibliography="references.bib"
+    template: template.tex
+    toc: yes
+    toc_depth: 1
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '2'
+  word_document:
+    fig_caption: yes
+    number_sections: yes
+    pandoc_args: 
+    - --top-level-division="chapter"
+    - --to="odt+native_numbering"
+    toc: yes
+    toc_depth: '2'
+toc-title: "Table des matières"
+bibliography: references.bib
+coursecode: TV15MI-TV25MI
+csl: iso690-author-date-fr-no-abstract.csl
+biblio-style: elsarticle-harv
+session: 2023-2024
+team: 5
+Abstract:
+- Dans le cadre de notre master 1 Miashs, les étudiants réalisent un \textbf{projet de Travaux d’Études et de Recherche} (TER) en lien avec un commanditaire. Ce présent document est un rapport intermédiaire dans lequel nous présenterons la définition de notre projet ainsi que sa planification et  gestion.
+- \textbf{Sujet 6 :}	« Identification de voies de signalisation activées par des traitements de cancer du sein ».
+- \textbf{Encadrement pédagogique :} \newline Mme Sophie Lèbre, sophie.lebre@univ-montp3.fr (Institut Montpelliérain Alexander Grothendieck) avec Mathilde Robin (Institut de Recherche en Cancérologie de Montpellier, LIRMM Laboratoire d'informatique, de robotique et de microélectronique de Montpellier), Charles Lecellier (LIRMM) et Laurent Bréhélin (LIRMM).
+- \textbf{Composition du groupe :} \newline Dina EL HIJJAWI, n°22310171, dina.el-hijjawi@etu.univ-montp3.fr. Coordinatrice. \newline Thomas AYRIVIÉ, n°22000580, thomas.ayrivie@etu.univ-montp3.fr. \newline Mehdi BELKHITER, n°21813356, mehidi.belkhiter@etu.univ-montp3.fr. \newline Jamila CHERKAOUI, n°22309204, jamila.cherkaoui@etu.univ-montp3.fr. \newline Magatte LO, n°22311161, magatte.lo@etu.univ-montp3.fr.
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Coordination du projet
+
+Le team leader est **Dina El Hijjawi**. Elle a réparti les tâches et le travail de la manière ci-après décrite. En premier temps, et pour mieux comprendre le projet sur lequel nous travaillons, tous les membres du groupe ont fait des analyses exploratoires sur les données, la lecture des articles mis à disposition par notre coordinatrice **Mme Sophie Lebre**.
+
+\bigskip
+
+Étant à l’aise en Python, **Jamila Cherkaoui**, **Magatte Lo** et **Mehdi Belkhiter** travaillent sur la construction du jeu de données. Ces données sont ensuite regroupées dans une matrice qui croise les gènes de chaque séquence et leurs motifs avec des p-valeurs associées pour chaque croisement. Une fois cette matrice créée, ils ont fait une jointure avec les données GEOquery NCBI (Patientes suivies pour le traitement de la maladie cancer du sein).
+
+\bigskip
+
+À partir de là, nous serons dans un problème de classification, abordé par **Dina El Hijjawi** et **Thomas Ayrivié**. Nous devrons rechercher des groupes de variables corrélées pour trouver un modèle explicatif qui utilise la structure de corrélation des variables avec l’utilisation de R.
+
+\bigskip
+
+Comme plusieurs tâches dépendent de la réalisation complète d'autres tâches et de leur validation par notre coordinateur, lorsque Jamila, Magatte et Mehdi travaillaient sur la création du jeu de données, Thomas et Dina complétaient les rendus et les agendas. Nous inverserons les tâches par la suite. De plus, les groupes de personnes se sont entraidés chaque fois que quelqu'un en avait besoin. 
+
+## Tâches à effectuer dans ce semestre
+
+* Créer et comprendre le jeu de données. **Fait**
+
+* Effectuer des analyses exploratoires du jeu de données. **En cours**
+
+* Comprendre le projet et le vocabulaire avec une première approche de la recherche. **En cours**
+
+* Répartir en classe les résultats. up, down et neutre en considérant un seuil à 2 pour le up (resp. 1/2 pour les down) pour le  ratio des comptages de read ARNm ("fold change") **En cours**
+
+* Proposer un premier modèle de classification. 800 modèles car 800 variables, on garde le meilleur modèle. **En cours**
+
+\bigskip
+
+* Remplacer ces valeurs nulles par 10^-3 multiplié par 2 <-  Plus quelque chose. **Mehdi**
+
+* Matrice X : Passer à -log(10) pour étaler les valeurs. Cela créera un score de présence de la valeur. Selon les conseils de Mathilde Robin. **Mehdi**
+
+* Matrice Y : Répartir en classe les résultats: up, down et neutre en considérant un seuil à 2 pour le up (resp. 1/2 pour les down) pour le ratio des comptages de read ARNm ("fold change"). **Thomas**
+
+* Regarder les liens entre les variables, à l’intérieur de la matrice X (régression deux à deux, conditionnement de X transpose X). **Jamila**
+
+* Faire une Classification hiérarchique. **Magatte**
+
+* Faire ACP + Clustering avec la matrice X.  **Dina**
+
+* Découvrir GLMnet, tester sur les données. **Thomas** et **Magatte**
+
+* PRÉVOIR DES CRITÈRES D’ÉVALUATION DU MODÈLE. **Tous**
+
+* Calculer la précision et le rappel. **Magatte**
+
+* Représentations générales pour l'analyse des données. **Dina** et **Jamila**
+
+* Représentation sous forme de heatmap, cases coloriées. **Thomas**
+
+
+
+
+# Attributuion des tâches 
+
+Les tâches confiées et divisées aux membres de l’équipe sont attribuées dans les fichiers minutes ou sur notre tableau de bord et de suivi Trello. Nous avons choisi cet outil pour la facilité d’utilisation, la personnalisation, et son accès facile en collaboration. 
+
+\bigskip
+
+Lien de notre tableau de bord : 
+\newline https://trello.com/invite/b/7tOOyIVU/ATTI59bbdd29acb96bcddeab5e2ed89e0cd8B2157DF3/projetter
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=16cm]{Trello.png}
+    \caption{Aperçu du Trello}
+  \end{center}
+\end{figure}
+
+# Suivi du projet et rencontres
+
+Chaque semaine où nous sommes à l’université, nous prenons rendez-vous avec Mme Lèbre le vendredi matin pour discuter de l’avancée du projet de recherche. Ces rendez-vous sont retranscrits dans le compte-rendu (fichiers minutes), déposé peu après sur GitHub et écrit sur Google Docs en mode collaboratif. De la même façon, l’ordre du jour et l’avancée du projet sont réalisés avant chaque réunion dans les fichiers agendas.
+
+\bigskip
+
+Les dates de rencontres sont décrites dans notre Google Agenda :
+\newline https://calendar.google.com/calendar/u/0?cid=NmE4M2NlOWZkYmMyYjRlODljODg4MzFiZWU0ZTYzMzViMWZiYWI1ZDAyZTQyOWI5NzBmZjZhNjYyZjkwNzJhNkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t] 
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{calandar.png}
+    \caption{Aperçu du google calandar}
+  \end{center}
+\end{figure}
+
+Pour faciliter notre communication et l’encourager, on a créé un serveur sur Discord. Cela permet à tous les membres du groupe de se tenir au courant de ce que font les autres. Nous nous posons également des questions et y répondons en permanence:
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{Discord.png}
+    \caption{Aperçu du discord}
+  \end{center}
+\end{figure}
+
+
+# Echéances universitaires
+* Comprendre et explorer les données avant le 17/11/2023
+* Revue de la littérature avant le 06/12/2023
+* Soutenance le 15/12/2023
+* Description des choix de modélisation et d’outils avant le 10/02/2024
+* Description des choix de visualisation avant le 10/03/2024
+* Interprétation des résultats avant le 14/04/2024
+* Rendu final avant le 09/05/2024
+* Soutenance finale le 13/05/2024
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
