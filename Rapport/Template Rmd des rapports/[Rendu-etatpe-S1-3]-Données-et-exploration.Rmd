@@ -1,0 +1,266 @@
+---
+title: "Projet TER par l'équipe 5 Rendu intermédiaire 3 :Les données et leur exploration "
+author:
+- 'Thomas AYRIVIÉ, '
+- 'Mehdi BELKHITER, '
+- 'Jamila CHERKAOUI, '
+- 'Dina EL HIJJAWI, '
+- Magatte LO.
+plagiat:
+- 'Thomas AYRIVIÉ, n°22000580'
+- 'Mehdi BELKHITER, n°21813356'
+- 'Jamila CHERKAOUI, n°22309204'
+- 'Dina EL HIJJAWI, n°22310171'
+- 'Magatte LO, n°22311161'
+date: "17/11/2023"
+output:
+  pdf_document:
+    fig_caption: yes
+    keep_md: yes
+    keep_tex: yes
+    md_extensions: +raw_attribute
+    number_sections: yes
+    pandoc_args:
+    - --top-level-division="chapter"
+    - --bibliography="references.bib"
+    template: template.tex
+    toc: yes
+    toc_depth: 1
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '2'
+  word_document:
+    fig_caption: yes
+    number_sections: yes
+    pandoc_args: 
+    - --top-level-division="chapter"
+    - --to="odt+native_numbering"
+    toc: yes
+    toc_depth: '2'
+header-includes:
+  - \usepackage{hyperref}
+toc-title: "Table des matières"
+bibliography: references.bib
+coursecode: TV15MI-TV25MI
+csl: iso690-author-date-fr-no-abstract.csl
+biblio-style: elsarticle-harv
+session: 2023-2024
+team: 5
+Abstract:
+- Dans le cadre de notre master 1 Miashs, les étudiants réalisent un \textbf{projet de Travaux d’Études et de Recherche} (TER) en lien avec un commanditaire. Ce présent document est un rapport intermédiaire dans lequel nous présenterons la définition de notre projet ainsi que les données utilisées et leur exploration.
+- \textbf{Sujet 6 :}	« Identification de voies de signalisation activées par des traitements de cancer du sein ».
+- \textbf{Encadrement pédagogique :} \newline Mme Sophie Lèbre, sophie.lebre@univ-montp3.fr (Institut Montpelliérain Alexander Grothendieck) avec Mathilde Robin (Institut de Recherche en Cancérologie de Montpellier, LIRMM Laboratoire d'informatique, de robotique et de microélectronique de Montpellier), Charles Lecellier (LIRMM) et Laurent Bréhélin (LIRMM).
+- \textbf{Composition du groupe :} \newline Dina EL HIJJAWI, n°22310171, dina.el-hijjawi@etu.univ-montp3.fr. Coordinatrice. \newline Thomas AYRIVIÉ, n°22000580, thomas.ayrivie@etu.univ-montp3.fr. \newline Mehdi BELKHITER, n°21813356, mehidi.belkhiter@etu.univ-montp3.fr. \newline Jamila CHERKAOUI, n°22309204, jamila.cherkaoui@etu.univ-montp3.fr. \newline Magatte LO, n°22311161, magatte.lo@etu.univ-montp3.fr.
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Sources des données
+
+\bigskip
+
+Pour mener à bien notre recherche, nous utilisons la base de données Jaspar\footnote{Wasserman Lab http://www.cmmt.ubc.ca/wasserman-lab/}, une ressource spécialisée dans les matrices de séquences d'ADN liées aux sites de liaison des facteurs de transcription. Ces matrices, également appelées matrices de poids de position (PWM), offrent une représentation numérique des motifs de liaison des facteurs de transcription qui sont des protéines codées par des gènes ADN qui sont responsables de l'activation ou l'inhibition d'autres gènes. Jaspar fournit des informations détaillées sur la fréquence de chaque base (A, C, G, T)\footnote{Les bases azotées symbolisées par A, C, G, T revoient dans le mémoire à A pour Adénine, C pour Cytosine, G pour Guanine, T pour Thymine.}, à chaque position au sein de ces motifs de liaison. Cette base de données est essentielle pour développer des modèles plus précis dans le but de mieux comprendre la régulation génique et les réponses cellulaires aux traitements du cancer du sein et elle est aussi essentielle pour identifier des sites de liaisons potentiels au sein des séquences et construire un ensemble de variables explicatives à partir des données existantes afin d'améliorer la performance et la capacité prédictive du modèle.
+
+\bigskip
+En complément, nous utilisons pareillement la base de données Series GSE130787 GEO\footnote { Hsiaowang Chen, Series GSE130787 de NCBI.
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE130787} (Gene Expression Omnibus) qui est chargée dans RStudio grâce à GEOquery\footnote {Davis S, Meltzer P (2007). “GEOquery: a bridge between the Gene Expression Omnibus (GEO) and BioConductor.” Bioinformatics, 14, 1846–1847. https://bioconductor.org/packages/release/bioc/html/GEOquery.html
+}. GEO stocke une grande variété de données d'expression génique provenant de diverses expériences et technologies, incluant les puces à ADN et les séquences ARN. Les chercheurs déposent leurs données d'expression génique dans GEO, permettant ainsi à d'autres scientifiques d'y accéder, de les partager et de les analyser. Cette base de données facilite l'exploration et la comparaison des profils d'expression génique dans différents contextes biologiques et expérimentaux.
+
+\bigskip
+Jaspar nous aide à analyser les motifs de liaison des facteurs de transcription, tandis que Geoquery nous permet d'accéder à une vaste gamme de données d'expression génique pour une exploration approfondie des mécanismes biologiques et des réponses aux traitements.
+
+# Création de notre jeu de données et traitements
+La population utilisée est des patientes atteintes de cancer du sein. Les unités statistiques utilisées sont les p-valeurs des motifs et séquences ADN.
+
+\bigskip
+Un fichier FASTA est un format de fichier texte couramment utilisé pour représenter des séquences d'acides nucléiques (comme l'ADN ou l'ARN) ou des séquences de protéines. Chaque fichier FASTA est composé d’une description de la composition et de la structure. Ligne d'En-tête : Chaque séquence dans un fichier FASTA commence par une ligne d'en-tête, qui est précédée du symbole “>”. Cette ligne d'en-tête est souvent utilisée pour stocker des identifiants et/ou des descriptions. Notre fichier contient 23557 lignes composées d’un identifiant suivi d’une séquence.
+
+\bigskip
+JASPAR est une base de données de référence pour les motifs de liaison des facteurs de transcription (TF). Elle fournit des matrices de position de poids (PWM) ou des profils qui représentent les motifs de séquence préférés des facteurs de transcription.  Notre fichier contient 1205 motifs.
+
+\bigskip
+Matrices de Position de Poids (PWM) : Les PWM dans JASPAR sont des représentations mathématiques des motifs de liaison des facteurs de transcription. Chaque colonne de la matrice correspond à un site de la séquence (par exemple, une base d'ADN) et chaque ligne représente un nucléotide (A, T, C, G). Les valeurs dans la matrice indiquent la probabilité relative de chaque nucléotide à chaque position du motif.
+
+\bigskip
+Utilisation en Bioinformatique : Les PWM de JASPAR sont largement utilisés pour identifier et prédire les sites de liaison des facteurs de transcription dans les séquences génomiques. Elles sont utilisées dans diverses analyses bioinformatiques, notamment l'analyse de l'expression génique, la régulation génétique et l'annotation des génomes.
+
+\bigskip
+À partir de là, nous faisons une matrice de correspondance des p-valeurs entre les noms de séquences et les noms de motifs. Les p-valeurs nulles sont remplacées par $2 \times 10^{-3}$. Il est à noter que la jointure a supprimé des données. Notre matrice Y contient 89 patientes en colonnes et 17014 séquences en lignes.
+
+# Résumés graphiques et numériques:
+Initialement aprés avoir réalisé la Jointure, certaines colonnes présentaient des valeurs manquantes (figure3.1). Pour remédier à cela , nous avons substitué ces valeurs manquantes par $2 \times 10^{-3}$. Ci-dessous, vous trouverez un aperçu de notre base de données finale(figure3.2).
+
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{matriceXAvant.png}
+     \caption{Jeu de données avec les NAN}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{matriceX.png}
+     \caption{Jeu de données final}
+  \end{center}
+\end{figure}
+
+La jointure entre les deux matrices a été réalisée en utilisant Spark en raison de la taille importante et du volume conséquent de la base de données.
+
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{spark.png}
+     \caption{Importation de Spark}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{jointure.png}
+     \caption{Code de la jointure entre les deux matrices }
+  \end{center}
+\end{figure}
+
+Voici aussi une représentation visuelle de la matrice Y regroupé en classe(up, down et neutre )
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{y.png}
+     \caption{les classes de la matrice Y}
+  \end{center}
+\end{figure}
+
+Les barres vertes représentent le nombre de séquences d'ADN classées comme "neutres" pour chaque patiente. Cela signifie que le log10(fold change) de ces séquences se situe entre -log10(2) et log10(2), indiquant que le changement d'expression n'est pas assez significatif pour être considéré comme "up" ou "down".
+
+Les barres rouges indiquent les séquences d'ADN classées comme "down" pour chaque patiente. Cela signifie que leur log10(fold change) est inférieur à -log10(2), ce qui indique une diminution de l'expression d'au moins moitié par rapport à l'état de référence.
+
+Les barres bleues montrent les séquences d'ADN classées comme "up". Cela indique que leur log10(fold change) est supérieur à log10(2), signalant un doublement ou plus de l'expression par rapport à l'état de référence.
+
+Pour clarifier, log10(2) est approximativement 0.3010, donc les seuils utilisés ici pour classer les séquences sont :
+
+"up" si le log10(fold change) > 0.3010
+
+"down" si le log10(fold change) < -0.3010
+
+"neutre" si -0.3010 <= log10(fold change) <= 0.3010
+
+Chaque colonne du graphique représente une patiente différente, et la hauteur de chaque barre indique le nombre de séquences classées dans chaque catégorie pour cette patiente.
+
+
+
+
+
+
+\bigskip
+
+
+Pour approfondir notre compréhension des données , nous avons réalisé une ACP(Analyse en Composante Principale). Les résultats capturés dans le summary de l'ACP(figure 3.6) et le cercle de corrélation interactif(figure3.7) ci-dessous offrent un aperçu visuel essentiel de la structure et des relations au sein de notre ensemble de données 
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{Acp1.png}
+    \includegraphics[width=16cm]{Acp.png}
+    \caption{Aperçu du summary de l'acp }
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{cercle_corrélation_acp.png}
+    \caption{Cercle de corrélation interactif pour l'ACP}
+  \end{center}
+\end{figure}
+
+L'ACP réalisée a réduit la dimensionnalité de  jeu de données en mettant en évidence les composantes principales qui expliquent la plus grande variance dans les données. Les premières composantes principales (PC1 et PC2 dans notre cas) capturent les aspects les plus significatifs des  données. Les contributions de chaque variable aux composantes principales aident à comprendre quelles variables ont le plus d'impact sur ces composantes. une contribution élevée d'une variable à PC1 indique qu'elle joue un rôle important dans la variance capturée par cette composante.
+
+Les valeurs propres indiquent la quantité de variance expliquée par chaque composante principale.  la première composante principale (PC1) a une valeur propre de 13.738, et la deuxième (PC2) de 6.086. Cela suggère que PC1 explique une part significative de la variance dans les données, plus que PC2.
+
+Pourcentage de variance expliquée : PC1 explique environ 7.89% de la variance totale, tandis que PC2 en explique environ 3.50%. Cela signifie que ces deux composantes, ensemble, capturent un peu plus de 11% de la variance totale des données.
+
+Contributions des variables : Des variables telles que MA0002.1::RUNX1 ont une contribution élevée à PC1, ce qui signifie qu'elles influencent fortement cette composante. Cela peut indiquer que ces variables jouent un rôle crucial dans les variations observées dans l'ensemble des données.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\bigskip
+
+
+Pour creuser un peu plus et mieux comprendre nos données, on a réalisé d'autres graphiques mais aussi des calculs descriptifs.
+
+  1. Analyse descriptive sur les variables 
+  
+  Pour une exploration appronfondie de nos données, nous avons entrepris une analyse descriptive compléte sur chaque variable. Les graphiques ci dessous illustrent visuellement les caractéristiques essentielles telles que la moyenne , l'écart type , le minimum  ect. Ces représentations fournissent un aperçu détaillé de la distribution et de la variabilité de nos données.De plus on a fait des graphiques pour représenter la moyenne et l'écart type pour chaque variable pour fournir un aperçu clair des tendances centrales et de la dispersion au sein de nos données.
+  
+  \begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{analyse.png}
+    \caption{Analyse descriptive sur les variables }
+  \end{center}
+\end{figure}
+
+ \begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{résumé.png}
+    \caption{Statistiques résumées pour chaque variable}
+  \end{center}
+\end{figure}
+
+ \begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{moyenne_ecart.png}
+    \caption{Graphe des moyennes et écart-type}
+  \end{center}
+\end{figure}
+
+ 2.Heatmap de corrélation
+ 
+\begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{heatmap.png}
+  \end{center}
+\end{figure}
+
+
+La heatmap de corrélation, qui est une représentation visuelle des coefficients de corrélation entre les variables est surchargée de données et donc difficile à interpréter. 
+
+La palette de couleurs passe du bleu (corrélation négative) au blanc (corrélation neutre) au rouge (corrélation positive). Les couleurs sont censées indiquer la force et la direction de la corrélation, mais avec autant de petites cellules, il est difficile de déterminer les valeurs exactes.
+
+Cependant, on peut  encore distinguer une concentration de rouge ce qui indique une forte corrélation entre les variables
+
+ 
+# Annexe 
+  
+  \begin{figure}[ht]
+  \begin{center} 
+    \includegraphics[width=16cm]{X.png}
+    \includegraphics[width=16cm]{maX.png}
+     \caption{Création de la matrice X }
+  \end{center}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
