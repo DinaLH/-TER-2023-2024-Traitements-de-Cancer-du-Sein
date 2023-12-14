@@ -1,0 +1,88 @@
+---
+title: "ter"
+output: html_document
+date: "2023-11-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+X <- read.csv("df_transformed (1).csv", row.names=1)
+sum(is.na(X))
+```
+Récuperation des données 
+
+```{r}
+# Calculer le pourcentage de NA pour chaque colonne
+pourcentage_na <- colSums(is.na(X)) / nrow(X) * 100
+# Afficher le pourcentage de NA
+pourcentage_na
+# Seuil pour la suppression des colonnes
+seuil_na <- 50  # Supprimer les colonnes avec plus de 50% de NA
+# Supprimer les colonnes qui dépassent le seuil
+X <- X[, pourcentage_na < seuil_na]
+# Afficher la structure du dataframe après suppression
+str(X)
+```
+1. Corrélation entre les Variables de X et Heatmap
+
+```{r}
+correlation_matrix <- cor(X, use = "pairwise.complete.obs")
+# Calcul du clustering hiérarchique
+hc <- hclust(as.dist(1 - correlation_matrix))  # Utilisation de la distance complémentaire
+# Coupe du dendrogramme pour obtenir un certain nombre de clusters, par exemple 10
+clusters <- cutree(hc, k = 10)
+# Ordonner la matrice de corrélation selon les clusters
+ordered_correlation_matrix <- correlation_matrix[order(clusters), order(clusters)]
+```
+
+
+
+Ici on essaye de regrouper les variables en utilisant le clustering hiérarchique et l'afficher dans la heatmap
+```{r}
+library(ggplot2)
+library(reshape2)
+
+# Création de la heatmap avec les clusters
+ggplot(melt(ordered_correlation_matrix), aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1)) +
+  theme_minimal() +
+  labs(title = "Heatmap de Corrélation avec Clusters", x = "Variable 1", y = "Variable 2", fill = "Corrélation")
+
+```
+```{r}
+library(RColorBrewer)
+
+# Création de la heatmap avec les clusters et des lignes pour les séparer
+ggplot(melt(ordered_correlation_matrix), aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1)) +
+  geom_hline(yintercept = which(diff(order(clusters)) != 0), col = "white") +
+  geom_vline(xintercept = which(diff(order(clusters)) != 0), col = "white") +
+  scale_fill_gradientn(colors = brewer.pal(9, "Reds")) +
+  theme_minimal() +
+  labs(title = "Heatmap de Corrélation avec Clusters", x = "Variable 1", y = "Variable 2", fill = "Corrélation")
+
+```
+
+Analyse en Composantes Principales (ACP)
+L'ACP est utilisé pour réduire la dimensionnalité des données tout en conservant le maximum de variation.
+
+```{r}
+library(FactoMineR)
+
+# Exécution de l'ACP avec FactoMineR
+acp_resultats <- PCA(X, scale.unit = TRUE, ncp = 5, graph = FALSE)
+
+# Affichage des résultats
+print(acp_resultats)
+
+# Pour afficher les graphiques (si nécessaire)
+plot(acp_resultats, choix = "ind")
+plot(acp_resultats, choix = "var")
+
+```
+
