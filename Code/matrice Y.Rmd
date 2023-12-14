@@ -1,0 +1,481 @@
+---
+title: "Matrice Y"
+output: html_document
+date: "2023-12-12"
+---
+Matrice expers_data contient les données d'expression génique sous forme de
+log10(fold change) pour chaque gène pour 89 patients
+Attention, il ya des lignes aves des doublons commençons par appliquer la classification "up", 
+"down" et "neutre" sur le jeu de données contenant les patients et les 
+valeurs de log10(fold change) pour chaque gène. Cette classification se base sur les seuils
+définis pour le fold change, transformés en log10. Vous avez mentionné que les seuils sont 2 
+pour "up" et 0.5 pour "down". En log10, ces seuils sont approximativement 0.3 pour "up" 
+et -0.3 pour "down".
+
+```{r}
+Y <- read.delim("~/M1/TER/exprs_data.txt", header = TRUE, row.names = NULL)
+```
+
+
+```{r}
+#Rendre les Noms de Rangées Uniques 
+unique_row_names <- paste(Y[,1], seq_along(Y[,1]), sep = "_")
+row.names(Y) <- unique_row_names
+Y <- Y[,-1]  # Supprimer la première colonne puisqu'elle est maintenant utilisée comme noms de rangées
+```
+
+```{r}
+# Définir les seuils
+seuil_up <- log10(2)      # seuil pour classer en 'up'
+seuil_down <- -log10(2)   # seuil pour classer en 'down'
+```
+
+```{r}
+# Créer une fonction pour classer chaque valeur
+classifier <- function(value) {
+  if (is.na(value)) {
+    return(NA)  # ou une autre valeur de remplacement si nécessaire
+  } else if (value >= seuil_up) {
+    return("up")
+  } else if (value <= seuil_down) {
+    return("down")
+  } else {
+    return("neutre")
+  }
+} 
+```
+
+```{r}
+# Sauvegarder les noms de lignes
+row_names <- row.names(Y)
+
+# Appliquer la fonction de classification à chaque colonne de Y
+Y <- as.data.frame(lapply(Y, function(col) sapply(col, classifier)))
+
+# Restaurer les noms de lignes
+row.names(Y) <- row_names
+```
+
+```{r}
+library(ggplot2)
+library(reshape2)
+
+#Répartition des classes pour tous les échantillons
+
+# Si 'gene_id' n'est pas une colonne mais les noms de rangées, vous pouvez l'ajouter comme une colonne avant de fondre
+Y$gene_id <- rownames(Y)
+# Fondre les données en un format long pour ggplot
+Y_long <- melt(Y, id.vars = "gene_id", variable.name = "sample", value.name = "class")
+# Pour créer un graphique en barres empilées pour tous les échantillons
+ggplot(Y_long, aes(x = sample, fill = class)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Pour incliner les étiquettes de l'axe des x si nécessaire
+  labs(title = "Répartition des classes pour tous les échantillons", x = "Sample", y = "Count")
+
+```
+
+
+
+```{r}
+Y <- read_csv("matriceY.csv")
+row.names(Y) <- Y[[1]]
+Y <- Y[,-1]
+```
+
+
+```{r}
+# Charger la bibliothèque ggplot2
+library(ggplot2)
+
+# Compter les modalités dans toutes les colonnes
+comptes_modalites <- c("up" = 0, "down" = 0)
+for (col in colnames(Y)) {
+    if (is.factor(Y[[col]]) || is.character(Y[[col]])) {
+        comptes_modalites["up"] <- comptes_modalites["up"] + sum(Y[[col]] == "up", na.rm = TRUE)
+        comptes_modalites["down"] <- comptes_modalites["down"] + sum(Y[[col]] == "down", na.rm = TRUE)
+       }
+}
+
+# Convertir en dataframe pour ggplot
+df_modalites <- data.frame(modalite = names(comptes_modalites), nombre = comptes_modalites)
+
+# Définir des couleurs plus homogènes
+couleurs <- c("up" = "#2ca02c", "down" = "#ff7f0e")
+
+# Créer un histogramme plus esthétique
+ggplot(df_modalites, aes(x = modalite, y = nombre, fill = modalite)) +
+    geom_bar(stat = "identity", width = 0.6) +
+    geom_text(aes(label = nombre), vjust = -0.5, size = 3) +
+    labs(title = "Class distribution", x = "Modalities", y = "Count") +
+    theme_minimal() +
+    scale_fill_manual(values = couleurs) +
+    theme(text = element_text(size = 12),
+          axis.title = element_text(size = 14),
+          title = element_text(size = 16, face = "bold"),
+          panel.background = element_rect(fill = "white"),
+          panel.grid.major = element_line(color = "grey80"),
+          panel.grid.minor = element_blank())
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# Calculer les nombres de 'up' et 'down' pour chaque patiente
+freq_up <- colSums(Y == 1, na.rm = TRUE)
+freq_down <- colSums(Y == -1, na.rm = TRUE)
+
+# Nombre total de patientes
+total_patientes <- ncol(Y)
+
+# Créer une liste pour stocker les dataframes de chaque groupe
+list_data_plots <- list()
+
+# Diviser les patientes en groupes et créer un dataframe pour chaque groupe
+for (i in seq(1, total_patientes, by = 10)) {
+  end_index <- min(i + 9, total_patientes)
+  patientes_group <- colnames(Y)[i:end_index]
+
+  data_plot <- data.frame(
+    Patient = rep(patientes_group, each = 2),
+    Classification = rep(c('Up', 'Down'), times = length(patientes_group)),
+    Frequency = c(freq_up[i:end_index], freq_down[i:end_index])
+  )
+  
+  list_data_plots[[length(list_data_plots) + 1]] <- data_plot
+}
+
+# Créer et afficher les graphiques pour chaque groupe
+par(mfrow = c(3, 3))  # Configurer l'affichage des graphiques (3 lignes, 3 colonnes)
+for (data_plot in list_data_plots) {
+  ggplot(data = data_plot, aes(x = Patient, y = Frequency, fill = Classification)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    labs(x = "Patient", y = "Frequency", fill = "Classification") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+}
+```
+
+```{r}
+plot(list_ggplots[[1]]) 
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+
+# Étape 1 : Convertir les modalités en valeurs numériques
+Y_numerique <- Y %>%
+  mutate(across(everything(), ~ case_when(
+    . == "up" ~ 1,
+    TRUE ~ NA_real_ # Utiliser NA_real_ pour les valeurs manquantes ou non-applicables
+  )))
+
+# Étape 2 : Somme des valeurs numériques pour chaque observation
+Y_somme <- rowSums(Y_numerique, na.rm = TRUE)
+
+# Étape 3 : Créer le graphique de densité pour la somme globale
+ggplot(data.frame(Somme = Y_somme), aes(x = Somme)) +
+  geom_density(fill = '#6d9df8', alpha = 0.6) +
+  labs(title = "Densité Globale des Modalités 'Up' dans Y",
+       x = "Somme des Modalités Numériques",
+       y = "Densité") +
+  theme_minimal()
+
+
+```
+Équilibre des Expressions: Le pic central indique que pour la majorité des gènes, les expressions sont équilibrées entre upregulation et downregulation. Cela peut signifier que pour la plupart des patientes, il y a une proportion similaire de gènes surexprimés et sous-exprimés.
+
+Gènes Clés: Les queues de la distribution montrent qu'il existe des gènes qui sont beaucoup plus fortement régulés, soit à la hausse soit à la baisse. Ces gènes pourraient jouer un rôle clé dans le développement ou la progression du cancer du sein et pourraient être des cibles potentielles pour la thérapie ou des biomarqueurs pour le diagnostic ou le pronostic. Hétérogénéité des Patientes: La distribution reflète également l'hétérogénéité des profils d'expression génique parmi les patientes. Cela peut avoir des implications importantes pour le traitement personnalisé, car certains gènes peuvent être plus pertinents pour certains sous-types de cancer du sein que pour d'autres.
+
+```{r}
+
+library(tidyverse)
+
+# Étape 1 : Convertir les modalités en valeurs numériques
+Y_numerique <- Y %>%
+  mutate(across(everything(), ~ case_when(
+    . == "down" ~ 1,
+    TRUE ~ NA_real_ # Utiliser NA_real_ pour les valeurs manquantes ou non-applicables
+  )))
+
+# Étape 2 : Somme des valeurs numériques pour chaque observation
+Y_somme <- rowSums(Y_numerique, na.rm = TRUE)
+
+# Étape 3 : Créer le graphique de densité pour la somme globale
+ggplot(data.frame(Somme = Y_somme), aes(x = Somme)) +
+  geom_density(fill = '#e87d72', alpha = 0.6) +
+  labs(title = "Densité Globale des genes Down ",
+       x = "Somme des Modalités Numériques",
+       y = "Densité") +
+  theme_minimal()
+
+
+```
+
+
+
+```{r}
+# Fonction pour tracer un diagramme de densité pour une variable
+plot_density <- function(data, variable_name) {
+  ggplot(data, aes_string(x = variable_name)) +
+    geom_density(na.rm = TRUE) +
+    labs(title = paste("Density of", variable_name),
+         x = "Value", y = "Density") +
+    theme_minimal()
+}
+
+# Appliquer la fonction à chaque colonne de Y_numerique
+plots <- lapply(names(Y_numerique), function(col) plot_density(Y_numerique, col))
+
+# Vous pouvez maintenant afficher les graphiques individuellement ou les enregistrer
+# Par exemple, pour voir le premier graphique, exécutez :
+ print(plots[[1]])
+
+```
+
+```{r}
+# Installer et charger dplyr si ce n'est pas déjà fait
+# install.packages("dplyr")
+library(dplyr)
+
+# Recoder les valeurs de Y en utilisant mutate et case_when pour gérer les conditions
+Y_numeric <- Y %>%
+  mutate_all(~case_when(
+    . == "up" ~ 1,
+    . == "neutre" ~ 0,
+    . == "down" ~ -1,
+    TRUE ~ NA_real_  # pour gérer les NA ou d'autres valeurs inattendues
+  ))
+
+
+```
+
+
+```{r}
+# Assurez-vous que les bibliothèques nécessaires sont chargées
+library(stats)
+library(ggplot2)
+
+# Supposons que votre matrice est nommée 'data_matrice'
+data_matrice <-Y_numeric
+
+# Calculer la matrice des distances entre les patientes
+# Transposer la matrice pour que les patientes soient sur les lignes et les gènes sur les colonnes
+dist_mat <- dist(t(data_matrice))
+
+# Effectuer le clustering hiérarchique en utilisant la méthode de votre choix, par exemple 'complete'
+hc <- hclust(dist_mat, method = "complete")
+
+# Visualiser le dendrogramme
+plot(hc)
+```
+Objectif de l'Analyse
+Comprendre comment certaines cellules résistent au traitement de chimiothérapie, nous cherchons à regrouper les patientes en fonction de leur profil de réponse génique. Cela permettra d'identifier des motifs communs parmi les patientes qui résistent au traitement.
+
+
+
+
+```{r}
+# Exemple d'imputation des valeurs manquantes dans Y par la médiane
+Y_imputed <- apply(Y, 2, function(x) {
+  ifelse(is.na(x), median(x, na.rm = TRUE), x)
+})
+dist_mat <- dist(Y_imputed)  # Recalculer la matrice de distances après l'imputation
+
+# Ensuite, réexécutez la boucle pour calculer les largeurs de silhouette
+
+```
+
+```{r}
+library(cluster)
+
+# Assurez-vous que Y est une matrice de données et non un dataframe, 
+# sinon convertissez-la : Y <- as.matrix(Y)
+
+# Calculer la matrice des distances une fois, si ce n'est pas déjà fait
+dist_mat <- dist(Y)
+
+# Initialiser le vecteur pour stocker les largeurs de silhouette
+sil_width <- rep(0, 9)
+
+# Boucle pour calculer la silhouette pour différentes tailles de clusters
+for (i in 2:10){
+  pam_fit <- pam(dist_mat, k = i, diss = TRUE)
+  sil_width[i-1] <- pam_fit$silinfo$avg.width
+}
+
+# Tracer le graphique de la silhouette
+plot(2:10, sil_width, type = "b", xlab = "Nombre de clusters", ylab = "Largeur moyenne de la silhouette")
+
+```
+
+
+```{r}
+# Si vous voulez découper l'arbre dendrogramme pour identifier un nombre spécifique de clusters
+# Vous pouvez remplacer 2 par le nombre de clusters que vous souhaitez obtenir
+clusters <- cutree(hc, k = 2)
+
+# Ajouter les clusters comme une nouvelle colonne dans la matrice de données
+# (Si vous souhaitez associer chaque patiente à un cluster)
+data_matrice$cluster <- clusters
+
+# Visualiser les données avec les clusters (peut nécessiter un traitement supplémentaire pour être significatif)
+# ggplot ou toute autre fonction de visualisation des données peut être utilisée ici.
+
+```
+
+```{r}
+# Supposons que votre matrice Y contient les états 'up', 'neutre', et 'down' codés comme 1, 0, et -1 respectivement.
+# Supposons aussi que vous avez déjà le vecteur 'clusters' de l'attribution des clusters pour chaque patiente.
+
+# Initialiser une liste pour stocker les résultats
+cluster_analysis <- list()
+
+# Nombre de clusters
+num_clusters <- max(clusters)
+
+# Boucle sur chaque cluster
+for (i in 1:num_clusters) {
+  # Créer un sous-ensemble de données pour le cluster i
+  subset_Y <- Y[, clusters == i]
+  
+  # Calculer la fréquence des états 'up', 'neutre', et 'down' pour chaque gène
+  gene_frequencies <- apply(subset_Y, 1, function(gene_row) {
+    c(
+      up = sum(gene_row == 1),
+      neutre = sum(gene_row == 0),
+      down = sum(gene_row == -1)
+    )
+  })
+  
+  # Convertir en dataframe
+  gene_frequencies_df <- as.data.frame(t(gene_frequencies))
+  
+  # Ajouter les fréquences dans la liste de résultats
+  cluster_analysis[[paste("Cluster", i)]] <- gene_frequencies_df
+}
+
+# Exemple d'affichage des fréquences pour le premier cluster
+print(cluster_analysis[["Cluster 2"]])
+
+# Ensuite, vous pouvez examiner les gènes qui ont une fréquence élevée de 'up' ou 'down'
+# pour chaque cluster en particulier ceux associés à la résistance au traitement.
+
+```
+
+
+
+
+
+```{r}
+
+# Calculer la matrice des distances
+dist_mat <- dist(Y_numeric, method = "euclidean")  # Utiliser la distance euclidienne
+
+# Effectuer le clustering hiérarchique
+hc <- hclust(dist_mat, method = "complete")  # Utiliser le linkage complet
+
+# Visualiser le dendrogramme
+plot(hc, hang = -1, label = row.names(Y_numeric))  # hang = -1 permet d'afficher toutes les étiquettes
+
+# Si vous voulez couper l'arbre pour obtenir un certain nombre de clusters, par exemple 3
+clusters <- cutree(hc, k = 3)
+
+# Associer les clusters aux noms de rangées
+cluster_assignments <- data.frame(gene_id = row.names(Y_numeric), cluster = clusters)
+
+# Visualiser les affectations de clusters
+print(cluster_assignments)
+
+# Vous pouvez également utiliser des packages tels que 'factoextra' pour une visualisation améliorée
+ install.packages("factoextra")
+library(factoextra)
+fviz_dend(hc, rect = TRUE, show_labels = FALSE)  # Ajouter des rectangles pour les clusters
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+write.csv(Y, file = "matriceY.csv")
+```
+
+```{r}
+# Charger les données à partir du fichier CSV
+matriceY <- read.csv("~/M1/TER/matriceY.csv")
+
+# Vérifier les premières lignes du dataframe pour comprendre sa structure
+head(matriceY)
+
+# Utiliser la colonne "Sequence" comme noms de lignes
+rownames(matriceY) <- matriceY$Sequence
+
+# Supprimer la colonne "Sequence"
+matriceY$Sequence <- NULL
+
+# Vérifier les changements
+head(matriceY)
+
+
+```
+
+
+```{r}
+library(readr)
+Y <- read_csv("~/M1/TER/matriceY.csv")
+
+```
+
+```{r}
+#Rendre les Noms de Rangées Uniques 
+unique_row_names <- paste(Y[,1], seq_along(Y[,1]), sep = "_")
+row.names(Y) <- unique_row_names
+Y <- Y[,-1]  # Supprimer la première colonne puisqu'elle est maintenant utilisée comme noms de rangées
+```
+
+```{r}
+library(ggplot2)
+library(reshape2)
+
+#Répartition des classes pour tous les échantillons
+
+# Si 'gene_id' n'est pas une colonne mais les noms de rangées, vous pouvez l'ajouter comme une colonne avant de fondre
+Y$gene_id <- rownames(Y)
+# Fondre les données en un format long pour ggplot
+Y_long <- melt(Y, id.vars = "gene_id", variable.name = "sample", value.name = "class")
+# Pour créer un graphique en barres empilées pour tous les échantillons
+ggplot(Y_long, aes(x = sample, fill = class)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Pour incliner les étiquettes de l'axe des x si nécessaire
+  labs(title = "Répartition des classes pour tous les échantillons", x = "Sample", y = "Count")
+
+```

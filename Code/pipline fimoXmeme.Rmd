@@ -1,0 +1,161 @@
+---
+title: "pipline"
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-12-12"
+---
+Toutes ces commandes ont été lancées depuis le TERMINAL.
+
+Étape 1 : Vérification et Installation de Homebrew
+
+Vérifier la présence de FIMO :
+```{bash}
+which fimo
+```
+
+Cette commande vérifie si fimo est installé sur le système.
+
+Installer Homebrew :
+
+```{bash}
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+Télécharge et exécute le script d'installation de Homebrew, un gestionnaire de paquets pour macOS.
+
+Étape 2 : Installation de MEME via Homebrew
+Ajouter le dépôt bio et installer MEME :
+
+```{bash}
+brew tap brewsci/bio
+brew install meme
+```
+
+Ajoute le dépôt brewsci/bio à Homebrew et installe le paquet meme.
+
+Mettre à jour les outils de ligne de commande :
+
+```{bash}
+sudo rm -rf /Library/Developer/CommandLineTools
+sudo xcode-select --install
+```
+
+Supprime les outils de ligne de commande existants et lance leur réinstallation, nécessaire pour la bonne installation de certains paquets.
+
+Réessayer l'installation de MEME :
+
+bash
+Copy code
+brew install meme
+Réessaye d'installer MEME après la mise à jour des outils de ligne de commande.
+
+Étape 3 : Configuration Post-Installation
+Vérifier la présence de FIMO après installation :
+
+```{bash}
+which fimo
+```
+
+Vérifie à nouveau si fimo est disponible après l'installation de MEME.
+
+Désinstaller MEME :
+
+```{bash}
+brew uninstall meme
+```
+
+Désinstalle MEME, probablement en réponse à un problème avec l'installation ou la configuration.
+
+Nettoyer le cache Homebrew :
+
+```{bash}
+brew cleanup
+```
+
+Nettoie le cache de Homebrew, supprimant les fichiers inutilisés ou obsolètes.
+
+Mettre à jour Homebrew et ses paquets :
+
+```{bash}
+brew update && brew upgrade
+```
+
+Met à jour Homebrew et tous les paquets installés.
+
+Étape 4 : Installation Correcte de MEME
+Installer à nouveau MEME :
+```{bash}
+brew install meme
+```
+Installe MEME une fois de plus, possiblement après avoir résolu les problèmes précédents.
+
+Étape 5 : Configuration de l'Environnement
+Ajouter MEME au PATH :
+```{bash}
+echo 'export PATH="/usr/local/Cellar/meme/5.1.0/libexec/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Ajoute le répertoire bin de MEME au PATH pour permettre l'exécution de ses outils depuis n'importe quel répertoire.
+
+Étape 6 : Utilisation de FIMO
+Exécuter FIMO :
+
+```{bash}
+fimo
+```
+Exécute fimo pour afficher ses options, indiquant que FIMO est correctement installé et accessible.
+
+Préparation des données pour FIMO :
+
+```{bash}
+fasta-get-markov "/Users/cherkaoui/Desktop/F6_CAT.gene.500bp.around.gene.start.coding_mRNA (1).fa copie"  > sortie_get_markov.txt
+
+```
+Génère des statistiques de base pour les séquences fasta, nécessaires pour l'exécution de fimo.
+
+Utiliser FIMO pour l'analyse de motifs :
+
+```{bash}
+fimo --thresh 1e-3 --max-stored-scores 1000000000 --text --verbosity 1 --bfile sortie_get_markov.txt "/Users/cherkaoui/Desktop/jaspar.genereg.net_download_data_2022_CORE_JASPAR2022_CORE_vertebrates_redundant_pfms_meme copie.txt" "/Users/cherkaoui/Desktop/F6_CAT.gene.500bp.around.gene.start.coding_mRNA (1).fa copie" > sortie_fimo.txt
+```
+
+Une commande fimo qui est utilisée pour rechercher des motifs génétiques spécifiques dans des séquences d'ADN. Voici ce que fait cette commande et pourquoi elle utilise deux fichiers, un fichier JASPAR et un fichier FASTA :
+
+Recherche de Motifs : La commande fimo est utilisée pour rechercher des motifs génétiques spécifiques dans des séquences d'ADN. Les motifs génétiques sont des séquences courtes et spécifiques d'ADN qui sont souvent associées à des fonctions biologiques particulières.
+
+Seuil de Significativité : Avec l'option --thresh 1e-2, la commande fimo fixe un seuil de significativité pour les correspondances de motifs. Cela signifie que seules les correspondances de motifs ayant une p-value (probabilité statistique) inférieure à 0,01 seront considérées comme significatives.
+
+Gestion des Scores : L'option --max-stored-scores 1000000000 indique à fimo de conserver un grand nombre de scores significatifs trouvés.
+
+Format de Sortie : L'option --text spécifie que les résultats seront générés sous forme de texte brut, ce qui facilite leur utilisation ultérieure ou leur analyse.
+
+Fichier de Fond (Background) : L'option --bfile sortie_get_markov.txt utilise un fichier qui spécifie les fréquences de base attendues dans les séquences d'ADN. Ce fichier est souvent généré à partir de séquences aléatoires ou de fond, et il permet d'évaluer la significativité des correspondances de motifs trouvées. Il s'agit d'une étape importante pour filtrer les correspondances potentielles dues au hasard.
+
+Fichier JASPAR : Le premier chemin de fichier "/Users/cherkaoui/Desktop/jaspar.genereg.net_download_data_2022_CORE_JASPAR2022_CORE_vertebrates_redundant_pfms_meme copie.txt" fait référence à un fichier qui contient des motifs génétiques provenant de la base de données JASPAR. Ces motifs sont des séquences génétiques spécifiques associées à des facteurs de transcription et d'autres éléments régulateurs de la transcription. La commande fimo va chercher des occurrences de ces motifs dans les séquences d'ADN spécifiées.
+
+Fichier FASTA : Le deuxième chemin de fichier "/Users/cherkaoui/Desktop/F6_CAT.gene.500bp.around.gene.start.coding_mRNA (1).fa copie" fait référence à un fichier FASTA contenant des séquences d'ADN dans lesquelles nous souhaitons rechercher les motifs. Ces séquences peuvent être des régions de gènes, des promoteurs, ou d'autres régions génomiques d'intérêt.
+
+En résumé, cette commande fimo utilise un fichier JASPAR contenant des motifs génétiques spécifiques et un fichier FASTA contenant des séquences d'ADN pour rechercher et identifier les occurrences de ces motifs dans les séquences d'ADN. L'utilisation du fichier JASPAR permet de cibler des motifs spécifiques associés à des fonctions biologiques connues, ce qui peut être utile dans des analyses de régulation génique.
+
+
+Exécute fimo avec des paramètres spécifiques pour analyser les motifs dans les séquences d'ADN.
+fimo analyse les séquences d'ADN spécifiées pour trouver des correspondances avec les motifs fournis.Avec --thresh 1e-2, la commande ne retient que les correspondances de motifs ayant une p-valeur inférieure à 0.01, indiquant une forte probabilité que la correspondance ne soit pas due au hasard.Le paramètre --max-stored-scores 1000000000 permet de conserver un grand nombre de scores significatifs trouvés.--text indique que les résultats seront fournis en texte brut, utile pour des analyses ultérieures.--bfile sortie_get_markov.txt utilise un fichier spécifiant les fréquences de base attendues dans les séquences d'ADN, aidant à évaluer la significativité des correspondances de motifs trouvées.
+
+Étape 7 : Filtrage et Analyse des Résultats de FIMO
+Filtrer et organiser les résultats de FIMO :
+
+```{bash}
+sort -k3,3 -k8,8n sortie_fimo.txt | awk 'BEGIN{OFS="\t"} !seen[$3]++ {print $1, $2, $3, $7, $8, $10}' > sortie_fimo_filtered.txt
+```
+
+Trie et filtre les résultats de fimo, en éliminant les doublons et en ne conservant que les informations pertinentes.
+
+Filtrer davantage les résultats :
+
+```{bash}
+awk 'BEGIN {OFS="\t"; min_pvalue=2} !seen[$2,$3]++ {min_pvalue=2} $8 < min_pvalue {min_pvalue=$8; line[$2,$3]=$0} END {for (key in line) print line[key]}' sortie_fimo.txt > fichier_filtré.txt
+```
+
+Un script awk supplémentaire pour filtrer les résultats en se basant sur les p-valeurs les plus basses.
+
